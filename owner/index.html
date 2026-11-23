@@ -1,1 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Owner Panel</title>
+<link rel="stylesheet" href="/styles.css">
+<style>body{padding:20px}.box{max-width:760px;margin:20px auto}.fbi{border-top:1px solid var(--glass-b);padding:12px 0}.fbi small{color:var(--muted)}</style>
+</head>
+<body>
+<div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
+<main class="box">
+  <section class="glass card" id="login">
+    <h2>Owner Login</h2>
+    <label>Password<input type="password" id="pw" autocomplete="current-password"></label>
+    <p></p><button class="btn btn-accent" id="loginBtn" type="button">Login</button>
+    <p class="note" id="loginNote"></p>
+  </section>
 
+  <div id="panel" hidden>
+    <section class="glass card">
+      <h2>Update parcel tracking</h2>
+      <div class="grid2">
+        <label>Tracking ID<input id="tid" maxlength="30"></label>
+        <label>Status<select id="tst"><option>Booked</option><option>Picked Up</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option></select></label>
+      </div>
+      <label>Note (optional)<input id="tnote" maxlength="160"></label>
+      <p></p><button class="btn btn-accent" id="tsave" type="button">Save</button>
+      <p class="note" id="tmsg"></p>
+    </section>
+    <p></p>
+    <section class="glass card">
+      <h2>Customer feedback</h2>
+      <div id="fblist">Loading…</div>
+    </section>
+  </div>
+</main>
+<script src="/owner/owner.js" defer></script>
+</body>
+</html>
