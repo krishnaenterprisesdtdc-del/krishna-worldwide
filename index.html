@@ -126,9 +126,139 @@
       </div>
 
       <!-- Camera Scanner Box -->
-      <div id="scannerContainer" style="display:none; margin-top:1rem; padding:0.75rem; border-radius:12px; background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.15);">
+      <div id="scannerContainer" style="display:none; margin-top:1rem; padding:0.75rem; border-radius:12px; background:rgba(0,0,0,0.65); color:#fff;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-          <span style="font-size:0.88rem; font-weight:600;">Point camera
+          <span style="font-size:0.88rem; font-weight:600;">Point camera at Barcode / QR</span>
+          <button type="button" id="closeScannerBtn" class="btn btn-glass small" style="padding:0.25rem 0.65rem;">Close ✕</button>
+        </div>
+        <div id="qrReader" style="width:100%; max-width:340px; margin:0 auto;"></div>
+      </div>
+
+      <button class="btn btn-accent full" type="submit" style="margin-top: 1rem; width:100%; cursor:pointer;">
+        Track Now
+      </button>
+    </form>
+
+    <div class="glass card" id="trackResult" style="display: none; margin-top: 1rem;"></div>
+  </section>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script>
+    (function () {
+      const CARRIERS = {
+        dtdc: { name: "DTDC Express", url: (id) => `https://www.dtdc.in/trace.asp` },
+        bluedart: { name: "Blue Dart", url: (id) => `https://www.bluedart.com/tracking` },
+        delhivery: { name: "Delhivery", url: (id) => `https://www.delhivery.com/track-v2/package/${encodeURIComponent(id)}` },
+        indiapost: { name: "India Post", url: (id) => `https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx` },
+        dhl: { name: "DHL Express", url: (id) => `https://www.dhl.com/in-en/home/tracking.html?tracking-id=${encodeURIComponent(id)}` },
+        fedex: { name: "FedEx", url: (id) => `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(id)}` },
+        ups: { name: "UPS", url: (id) => `https://www.ups.com/track?tracknum=${encodeURIComponent(id)}` },
+        xpressbees: { name: "XpressBees", url: (id) => `https://www.xpressbees.com/shipment/tracking` },
+        ecom: { name: "Ecom Express", url: (id) => `https://ecomexpress.in/tracking/?awb_field=${encodeURIComponent(id)}` },
+        amazon: { name: "Amazon Shipping", url: (id) => `https://track.amazon.in/tracking/${encodeURIComponent(id)}` },
+        trackon: { name: "Trackon Couriers", url: (id) => `https://trackon.in/` },
+        professional: { name: "The Professional Couriers", url: (id) => `https://www.tpcindia.com/` },
+        vrl: { name: "VRL Logistics", url: (id) => `https://www.vrlgroup.in/track_consignment.aspx` },
+        tci: { name: "TCI Express", url: (id) => `https://www.tciexpress.in/` },
+        gati: { name: "Allcargo Gati", url: (id) => `https://www.gati.com/track-shipment/` },
+        safexpress: { name: "Safexpress", url: (id) => `https://www.safexpress.com/` }
+      };
+
+      function detectCarrier(awb) {
+        const clean = awb.trim().toUpperCase();
+        if (/^1Z[0-9A-Z]{16}$/.test(clean)) return "ups";
+        if (/^[A-Z]{2}\d{9}IN$/.test(clean)) return "indiapost";
+        if (/^[DMZVP]\d{8,10}$/.test(clean)) return "dtdc";
+        if (/^\d{10}$/.test(clean)) return "dhl";
+        if (/^\d{12}$|^\d{15}$/.test(clean)) return "fedex";
+        if (/^\d{11}$/.test(clean)) return "bluedart";
+        if (/^\d{13,14}$/.test(clean)) return "delhivery";
+        return null;
+      }
+
+      const form = document.getElementById("universalTrackForm");
+      const resultBox = document.getElementById("trackResult");
+      const awbInput = document.getElementById("awbInput");
+      const openScanBtn = document.getElementById("openScannerBtn");
+      const closeScanBtn = document.getElementById("closeScannerBtn");
+      const scannerContainer = document.getElementById("scannerContainer");
+      let html5QrCode = null;
+
+      async function stopScanner() {
+        if (html5QrCode) {
+          try { await html5QrCode.stop(); html5QrCode.clear(); } catch (e) {}
+          html5QrCode = null;
+        }
+        scannerContainer.style.display = "none";
+      }
+
+      if (openScanBtn) {
+        openScanBtn.addEventListener("click", async function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof Html5Qrcode === "undefined") {
+            alert("Scanner is loading, please wait 2 seconds and tap Scan again.");
+            return;
+          }
+          scannerContainer.style.display = "block";
+          html5QrCode = new Html5Qrcode("qrReader");
+          try {
+            await html5QrCode.start(
+              { facingMode: "environment" },
+              { fps: 10, qrbox: { width: 230, height: 120 } },
+              async (decodedText) => {
+                awbInput.value = decodedText.trim();
+                await stopScanner();
+                form.dispatchEvent(new Event("submit"));
+              }
+            );
+          } catch (err) {
+            scannerContainer.style.display = "none";
+            alert("Please allow Camera permission in your browser settings to scan barcodes.");
+          }
+        });
+      }
+
+      if (closeScanBtn) {
+        closeScanBtn.addEventListener("click", stopScanner);
+      }
+
+      if (form) {
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const awb = awbInput.value.trim();
+          const selected = document.getElementById("carrierSelect").value;
+
+          if (!awb) {
+            resultBox.style.display = "block";
+            resultBox.innerHTML = "<p>Please enter a valid Tracking ID / AWB number.</p>";
+            return;
+          }
+
+          const carrierKey = selected === "auto" ? detectCarrier(awb) : selected;
+          resultBox.style.display = "block";
+
+          if (carrierKey && CARRIERS[carrierKey]) {
+            const carrier = CARRIERS[carrierKey];
+            const trackUrl = carrier.url(awb);
+            resultBox.innerHTML = `
+              <p style="margin-bottom:0.4rem;"><strong>Courier:</strong> ${carrier.name}</p>
+              <p style="margin-bottom:0.85rem;"><strong>Tracking / AWB No.:</strong> ${awb}</p>
+              <a class="btn btn-accent" href="${trackUrl}" target="_blank" rel="noopener">
+                Open ${carrier.name} Live Tracking &nearr;
+              </a>
+            `;
+            window.open(trackUrl, "_blank", "noopener");
+          } else {
+            resultBox.innerHTML = `
+              <p style="margin-bottom:0.4rem;">Could not auto-detect courier for <strong>${awb}</strong>.</p>
+              <p>Please select your Courier / Transport Company from the dropdown list and tap <strong>Track Now</strong>.</p>
+            `;
+          }
+        });
+      }
+    })();
+  </script>
 
 <!-- SERVICES -->
 <section class="wrap section" id="services">
