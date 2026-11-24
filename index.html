@@ -90,7 +90,7 @@
             />
             <button
               type="button"
-              id="openScannerBtn"
+              id="openScannerBtn" onclick="kwOpenScan()"
               class="btn btn-glass"
               title="Scan Barcode / QR"
               style="padding:0.65rem 0.85rem; display:inline-flex; align-items:center; gap:0.35rem; white-space:nowrap;"
@@ -134,7 +134,7 @@
         <div id="qrReader" style="width:100%; max-width:340px; margin:0 auto;"></div>
       </div>
 
-      <button class="btn btn-accent full" type="submit" style="margin-top: 1rem; width:100%; cursor:pointer;">
+      <button class="btn btn-accent full" type="submit" onclick="return kwTrackNow()" style="margin-top: 1rem; width:100%; cursor:pointer;">
         Track Now
       </button>
     </form>
