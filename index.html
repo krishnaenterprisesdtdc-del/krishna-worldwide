@@ -450,6 +450,28 @@ window.addEventListener("load",function(){
 });
 </script>
   <script>
+(function(){
+  var FC={dtdc:"100069",delhivery:"100060"};
+  function go(e){
+    e.preventDefault();e.stopImmediatePropagation();
+    var i=document.getElementById("awbInput"),s=document.getElementById("carrierSelect");
+    var a=(i?i.value:"").trim();
+    if(!a){alert("Please enter Tracking ID");return;}
+    var u="https://t.17track.net/en#nums="+encodeURIComponent(a);
+    var k=s?s.value:"";
+    if(FC[k])u+="&fc="+FC[k];
+    window.open(u,"_blank");
+  }
+  document.addEventListener("submit",function(e){
+    if(e.target&&e.target.id==="universalTrackForm")go(e);
+  },true);
+  document.addEventListener("click",function(e){
+    var b=e.target&&e.target.closest?e.target.closest('#universalTrackForm button[type="submit"]'):null;
+    if(b)go(e);
+  },true);
+})();
+</script>
+  <script>
 document.addEventListener("submit",function(e){
   if(!e.target||e.target.id!=="universalTrackForm")return;
   e.preventDefault();e.stopImmediatePropagation();
