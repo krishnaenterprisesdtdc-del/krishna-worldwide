@@ -449,5 +449,24 @@ window.addEventListener("load",function(){
   }
 });
 </script>
+  <script>
+document.addEventListener("submit",function(e){
+  if(!e.target||e.target.id!=="universalTrackForm")return;
+  e.preventDefault();e.stopImmediatePropagation();
+  var i=document.getElementById("awbInput");
+  var a=(i?i.value:"").trim();
+  if(!a){alert("Please enter Tracking ID");return;}
+  window.open("https://t.17track.net/en#nums="+encodeURIComponent(a),"_blank");
+},true);
+document.addEventListener("click",function(e){
+  var b=e.target&&e.target.closest?e.target.closest('#universalTrackForm button[type="submit"]'):null;
+  if(!b)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  var i=document.getElementById("awbInput");
+  var a=(i?i.value:"").trim();
+  if(!a){alert("Please enter Tracking ID");return;}
+  window.open("https://t.17track.net/en#nums="+encodeURIComponent(a),"_blank");
+},true);
+</script>
 </body>
 </html>
