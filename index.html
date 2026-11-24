@@ -398,5 +398,56 @@
 </section>
 
 <script src="/app.js" defer></script>
+  <script>
+window.addEventListener("load",function(){
+  var f=document.getElementById("universalTrackForm"),i=document.getElementById("awbInput"),s=document.getElementById("carrierSelect"),b=document.getElementById("openScannerBtn");
+  if(!f||!i)return;
+  var oldSc=document.getElementById("scannerContainer");if(oldSc)oldSc.remove();
+  var sb=f.querySelector('button[type="submit"]');
+  if(!sb){sb=document.createElement("button");sb.type="submit";sb.className="btn btn-accent full";sb.style.cssText="margin-top:1rem;width:100%;cursor:pointer;";sb.textContent="Track Now";f.appendChild(sb);}
+  var r=document.getElementById("trackResult");
+  if(!r){r=document.createElement("div");r.id="trackResult";r.className="glass card";r.style.cssText="display:none;margin-top:1rem;";f.parentNode.appendChild(r);}
+  var U={dtdc:"https://www.dtdc.in/trace.asp",bluedart:"https://www.bluedart.com/tracking",delhivery:"https://www.delhivery.com/track-v2/package/",indiapost:"https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx",dhl:"https://www.dhl.com/in-en/home/tracking.html?tracking-id=",fedex:"https://www.fedex.com/fedextrack/?trknbr=",ups:"https://www.ups.com/track?tracknum=",xpressbees:"https://www.xpressbees.com/shipment/tracking",ecom:"https://ecomexpress.in/tracking/?awb_field=",amazon:"https://track.amazon.in/tracking/",trackon:"https://trackon.in/",professional:"https://www.tpcindia.com/",vrl:"https://www.vrlgroup.in/track_consignment.aspx",tci:"https://www.tciexpress.in/",gati:"https://www.gati.com/track-shipment/",safexpress:"https://www.safexpress.com/"};
+  function det(a){a=a.trim().toUpperCase();if(/^1Z/.test(a))return"ups";if(/^[A-Z]{2}\d{9}IN$/.test(a))return"indiapost";if(/^[DMZVP]\d{8,10}$/.test(a))return"dtdc";if(/^\d{10}$/.test(a))return"dhl";if(/^\d{12}$|^\d{15}$/.test(a))return"fedex";if(/^\d{11}$/.test(a))return"bluedart";if(/^\d{13,14}$/.test(a))return"delhivery";return"";}
+  function runTrack(){
+    var a=i.value.trim(),k=s.value==="auto"?det(a):s.value;
+    r.style.display="block";
+    if(!a){r.innerHTML="<p>Please enter a Tracking ID / AWB number.</p>";return;}
+    if(k&&U[k]){
+      var u=U[k]+(["delhivery","dhl","fedex","ups","ecom","amazon"].indexOf(k)>-1?encodeURIComponent(a):"");
+      r.innerHTML='<p style="margin-bottom:0.5rem;"><b>Courier:</b> '+k.toUpperCase()+' | <b>No:</b> '+a+'</p><a class="btn btn-accent" href="'+u+'" target="_blank" rel="noopener">Open Live Tracking ↗</a>';
+      window.open(u,"_blank");
+    }else{
+      r.innerHTML="<p>Could not auto-detect <b>"+a+"</b>. Please select your Courier from the list above and tap <b>Track Now</b>.</p>";
+    }
+  }
+  f.addEventListener("submit",function(e){e.preventDefault();e.stopImmediatePropagation();runTrack();},true);
+  sb.addEventListener("click",function(e){e.preventDefault();e.stopImmediatePropagation();runTrack();},true);
+  if(b){
+    b.addEventListener("click",function(e){
+      e.preventDefault();e.stopImmediatePropagation();
+      var bx=document.createElement("div");
+      bx.id="scannerContainer";
+      bx.style.cssText="display:block;margin-top:1rem;padding:0.75rem;background:#111;color:#fff;border-radius:12px;text-align:center;";
+      bx.innerHTML='<p style="margin-bottom:0.5rem;font-size:0.9rem;">Loading Camera Scanner...</p><div id="qrReader" style="width:100%;max-width:320px;margin:auto;"></div><button type="button" id="closeCam" class="btn btn-glass small" style="margin-top:0.5rem;">Close ✕</button>';
+      f.insertBefore(bx,sb);
+      document.getElementById("closeCam").onclick=function(){bx.remove();};
+      function startCam(){
+        var qr=new Html5Qrcode("qrReader");
+        qr.start({facingMode:"environment"},{fps:10,qrbox:220},function(txt){
+          i.value=txt.trim();
+          qr.stop().catch(function(){});
+          bx.remove();
+          runTrack();
+        }).catch(function(err){
+          bx.innerHTML='<p style="color:#ff8080;font-size:0.88rem;">Camera permission blocked or unavailable. Please allow Camera in browser settings.</p>';
+        });
+      }
+      if(window.Html5Qrcode){startCam();}
+      else{var sc=document.createElement("script");sc.src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";sc.onload=startCam;document.body.appendChild(sc);}
+    },true);
+  }
+});
+</script>
 </body>
 </html>
